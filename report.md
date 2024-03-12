@@ -38,7 +38,7 @@ TODO: Uzupełnić
 ### Zapis informacji preferencyjnej
 TODO: Ustalić
 $$
-U(a) \ge U(b) + \epsilon
+U(b) \ge U(a) + \epsilon
 \\
 U(c) = U(d)
 \\
