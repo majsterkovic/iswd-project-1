@@ -1,13 +1,13 @@
 import pandas as pd
 import pulp
 import matplotlib.pyplot as plt
+import numpy as np
 from typing import List, Tuple, Dict
 plt.style.use('ggplot')
 
 
 def solve_lp_problem(df: pd.DataFrame, preferential_info: List[tuple], indiff_info: List[tuple], verbose=True, gms=False):
     criteria = df.columns.tolist()
-    # reference_alternatives = [v for pair in preferential_info + indiff_info for v in pair]
     all_alternatives = df.index.tolist()
 
     pulp.LpSolverDefault.msg = 0
@@ -124,3 +124,15 @@ def create_full_ranking_df(df: pd.DataFrame, problem: pulp.LpProblem, criteria: 
         df.loc[alt, col] = utility
     df['U'] = df['u1'] + df['u2'] + df['u3'] + df['u4']
     return df
+
+
+def check_consistency(rank: pd.DataFrame, preferential_info: List[tuple], indiff_info: List[tuple], coef=1e-5):
+    final_rank = rank.sort_values(by='U', ascending=False).index.values
+    for pair in preferential_info:
+        if np.where(final_rank == pair[0])[0].item() > np.where(final_rank == pair[1])[0].item():
+            print(f'Inconsistency for pair: {pair}')
+            return False
+    for pair in indiff_info:
+        if abs(rank.loc[pair[0]].U - rank.loc[pair[1]].U) > coef:
+            print(f'Inconsistency for pair: {pair}')
+    return True
