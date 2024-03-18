@@ -2,6 +2,7 @@ import pandas as pd
 import pulp
 import matplotlib.pyplot as plt
 from typing import List, Tuple, Dict
+plt.style.use('ggplot')
 
 
 def solve_lp_problem(df: pd.DataFrame, preferential_info: List[tuple], indiff_info: List[tuple], verbose=True, gms=False):
@@ -100,7 +101,26 @@ def plot_utility_functions(problem: pulp.LpProblem, u_vars: Dict, criteria: List
             y_values = [u_vars[(value[0], criterion)].varValue for value in x_values]
 
             plt.figure(figsize=(8, 5))
-            plt.scatter(X_axis, y_values, marker='o')
+            plt.scatter(X_axis, y_values)
             plt.title(f"Kryterium {criterion}")
 
     plt.show()
+
+
+def create_full_ranking_df(df: pd.DataFrame, problem: pulp.LpProblem, criteria: List[str]):
+    output = []
+    for v in problem.variables():
+        if 'epsilon' not in v.name and 'best' not in v.name and 'worst' not in v.name:
+            output.append((v.name, v.varValue))
+    partial_util = [f'u{i + 1}' for i in range(len(criteria))]
+    util_cols = pd.DataFrame(columns=partial_util + ["U"])
+    df = pd.concat([df, util_cols], axis=1)
+
+    criteria_util_map = {c: u for c, u in zip(criteria, partial_util)}
+    for alternative, utility in output:
+        _, alt, criterion = alternative.split('_')
+        alt = int(alt)
+        col = criteria_util_map[criterion]
+        df.loc[alt, col] = utility
+    df['U'] = df['u1'] + df['u2'] + df['u3'] + df['u4']
+    return df
