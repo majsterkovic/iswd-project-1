@@ -1,0 +1,106 @@
+import pandas as pd
+import pulp
+import matplotlib.pyplot as plt
+from typing import List, Tuple, Dict
+
+
+def solve_lp_problem(df: pd.DataFrame, preferential_info: List[tuple], indiff_info: List[tuple], verbose=True, gms=False):
+    criteria = df.columns.tolist()
+    # reference_alternatives = [v for pair in preferential_info + indiff_info for v in pair]
+    all_alternatives = df.index.tolist()
+
+    pulp.LpSolverDefault.msg = 0
+    problem = pulp.LpProblem("UTA", pulp.LpMaximize)
+    print("Kryteria:", criteria)
+
+    # VARIABLES
+    u_vars = {}
+    for alternative in all_alternatives:
+        for criterion in criteria:
+            u_vars[(alternative, criterion)] = pulp.LpVariable(f"u_{alternative}_{criterion}", lowBound=0)
+            if verbose:
+                print("Stworzono zmienną decyzyjną:", u_vars[(alternative, criterion)], "o dolnym ograniczeniu 0")
+
+    epsilon = pulp.LpVariable("epsilon", lowBound=-100)
+    print("Stworzono zmienną decyzyjną:", epsilon, "o dolnym ograniczeniu 0")
+    problem += epsilon
+    print("Dodano funkcję celu:", problem.objective)
+
+    # REFERENCE RANKING
+    for (a, b) in preferential_info:
+        problem += pulp.lpSum(u_vars[(a, j)] for j in criteria) >= pulp.lpSum(
+            u_vars[(b, j)] for j in criteria) + epsilon
+
+    for (a, b) in indiff_info:
+        problem += pulp.lpSum(u_vars[(a, j)] for j in criteria) == pulp.lpSum(u_vars[(b, j)] for j in criteria)
+
+    print("Dodano ograniczenia wynikające z rankingu referencyjnego")
+
+    # NORMALIZATION and NON-NEGATIVITY
+    breakpoints = {}
+    for criterion in criteria:
+        for _ in all_alternatives:
+            breakpoints[criterion] = []
+
+    for criterion in criteria:
+        for alternative in all_alternatives:
+            breakpoints[criterion].append((alternative, df.loc[alternative, criterion]))
+
+    for criterion in criteria:
+        breakpoints[criterion].sort(key=lambda x: x[1], reverse=True)
+
+    u_best = [pulp.LpVariable(f'u_best_{criteria[i]}', lowBound=0) for i in range(len(criteria))]
+    u_worst = [pulp.LpVariable(f'u_worst_{criteria[i]}', lowBound=0, upBound=0) for i in range(len(criteria))]
+    problem += pulp.lpSum(u_worst) == 0
+    problem += pulp.lpSum(u_best) == 1
+
+    weights = [0.2, 0.18, 0.3, 0.32]  # TODO
+
+    for i, criterion in enumerate(breakpoints):
+        # worst
+        key = (breakpoints[criterion][0][0], criterion)
+        problem += u_worst[i] == 0
+        problem += u_worst[i] <= u_vars[key]
+
+        # best
+        key = (breakpoints[criterion][-1][0], criterion)
+        problem += u_best[i] == 1 * weights[i]
+        problem += u_vars[key] <= u_best[i]
+
+    print("Dodano ograniczenia wynikające z normalizacji i nieujemnosci")
+
+    # MONOTONICITY
+    for criterion in criteria:
+        for i in range(1, len(breakpoints[criterion])):
+            key1 = (breakpoints[criterion][i - 1][0], criterion)
+            key2 = (breakpoints[criterion][i][0], criterion)
+            problem += u_vars[key2] >= u_vars[key1]
+
+    print("Dodano ograniczenia wynikające z monotoniczności")
+    print("Ostateczny problem do rozwiązania:")
+    problem.solve()
+
+    if verbose:
+        print(problem)
+        for v in problem.variables():
+            print(v.name, "=", v.varValue)
+
+    print("Status:", pulp.LpStatus[problem.status])
+
+    return problem, u_vars, criteria, breakpoints
+
+
+def plot_utility_functions(problem: pulp.LpProblem, u_vars: Dict, criteria: List[str], breakpoints: Dict[str, List[Tuple[str, float]]]):
+    if pulp.LpStatus[problem.status] == 'Optimal':
+        for criterion in criteria:
+            sorted_alternatives = sorted(breakpoints[criterion])
+
+            x_values = sorted_alternatives
+            X_axis = [value[1] for value in x_values]
+            y_values = [u_vars[(value[0], criterion)].varValue for value in x_values]
+
+            plt.figure(figsize=(8, 5))
+            plt.scatter(X_axis, y_values, marker='o')
+            plt.title(f"Kryterium {criterion}")
+
+    plt.show()
