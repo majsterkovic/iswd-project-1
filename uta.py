@@ -3,10 +3,17 @@ import pulp
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import List, Tuple, Dict
-plt.style.use('ggplot')
+
+plt.style.use("ggplot")
 
 
-def solve_lp_problem(df: pd.DataFrame, preferential_info: List[tuple], indiff_info: List[tuple], verbose=True, gms=False):
+def solve_lp_problem(
+    df: pd.DataFrame,
+    preferential_info: List[tuple],
+    indiff_info: List[tuple],
+    verbose=True,
+    gms=False,
+):
     criteria = df.columns.tolist()
     all_alternatives = df.index.tolist()
 
@@ -18,9 +25,15 @@ def solve_lp_problem(df: pd.DataFrame, preferential_info: List[tuple], indiff_in
     u_vars = {}
     for alternative in all_alternatives:
         for criterion in criteria:
-            u_vars[(alternative, criterion)] = pulp.LpVariable(f"u_{alternative}_{criterion}", lowBound=0)
+            u_vars[(alternative, criterion)] = pulp.LpVariable(
+                f"u_{alternative}_{criterion}", lowBound=0
+            )
             if verbose:
-                print("Stworzono zmienną decyzyjną:", u_vars[(alternative, criterion)], "o dolnym ograniczeniu 0")
+                print(
+                    "Stworzono zmienną decyzyjną:",
+                    u_vars[(alternative, criterion)],
+                    "o dolnym ograniczeniu 0",
+                )
 
     epsilon = pulp.LpVariable("epsilon", lowBound=-100)
     print("Stworzono zmienną decyzyjną:", epsilon, "o dolnym ograniczeniu 0")
@@ -28,12 +41,16 @@ def solve_lp_problem(df: pd.DataFrame, preferential_info: List[tuple], indiff_in
     print("Dodano funkcję celu:", problem.objective)
 
     # REFERENCE RANKING
-    for (a, b) in preferential_info:
-        problem += pulp.lpSum(u_vars[(a, j)] for j in criteria) >= pulp.lpSum(
-            u_vars[(b, j)] for j in criteria) + epsilon
+    for a, b in preferential_info:
+        problem += (
+            pulp.lpSum(u_vars[(a, j)] for j in criteria)
+            >= pulp.lpSum(u_vars[(b, j)] for j in criteria) + epsilon
+        )
 
-    for (a, b) in indiff_info:
-        problem += pulp.lpSum(u_vars[(a, j)] for j in criteria) == pulp.lpSum(u_vars[(b, j)] for j in criteria)
+    for a, b in indiff_info:
+        problem += pulp.lpSum(u_vars[(a, j)] for j in criteria) == pulp.lpSum(
+            u_vars[(b, j)] for j in criteria
+        )
 
     print("Dodano ograniczenia wynikające z rankingu referencyjnego")
 
@@ -50,8 +67,14 @@ def solve_lp_problem(df: pd.DataFrame, preferential_info: List[tuple], indiff_in
     for criterion in criteria:
         breakpoints[criterion].sort(key=lambda x: x[1], reverse=True)
 
-    u_best = [pulp.LpVariable(f'u_best_{criteria[i]}', lowBound=0) for i in range(len(criteria))]
-    u_worst = [pulp.LpVariable(f'u_worst_{criteria[i]}', lowBound=0, upBound=0) for i in range(len(criteria))]
+    u_best = [
+        pulp.LpVariable(f"u_best_{criteria[i]}", lowBound=0)
+        for i in range(len(criteria))
+    ]
+    u_worst = [
+        pulp.LpVariable(f"u_worst_{criteria[i]}", lowBound=0, upBound=0)
+        for i in range(len(criteria))
+    ]
     problem += pulp.lpSum(u_worst) == 0
     problem += pulp.lpSum(u_best) == 1
 
@@ -75,6 +98,7 @@ def solve_lp_problem(df: pd.DataFrame, preferential_info: List[tuple], indiff_in
         for i in range(1, len(breakpoints[criterion])):
             key1 = (breakpoints[criterion][i - 1][0], criterion)
             key2 = (breakpoints[criterion][i][0], criterion)
+            # not sure about that, variables with exact same value on criterion may have different utility
             problem += u_vars[key2] >= u_vars[key1]
 
     print("Dodano ograniczenia wynikające z monotoniczności")
@@ -91,48 +115,62 @@ def solve_lp_problem(df: pd.DataFrame, preferential_info: List[tuple], indiff_in
     return problem, u_vars, criteria, breakpoints
 
 
-def plot_utility_functions(problem: pulp.LpProblem, u_vars: Dict, criteria: List[str], breakpoints: Dict[str, List[Tuple[str, float]]]):
-    if pulp.LpStatus[problem.status] == 'Optimal':
+def plot_utility_functions(
+    problem: pulp.LpProblem,
+    u_vars: Dict,
+    criteria: List[str],
+    breakpoints: Dict[str, List[Tuple[str, float]]],
+):
+    if pulp.LpStatus[problem.status] == "Optimal":
         for criterion in criteria:
-            sorted_alternatives = sorted(breakpoints[criterion])
-
+            sorted_alternatives = breakpoints[criterion]
+            sorted_alternatives.sort(key=lambda x: x[1], reverse=False)
             x_values = sorted_alternatives
             X_axis = [value[1] for value in x_values]
             y_values = [u_vars[(value[0], criterion)].varValue for value in x_values]
-
-            plt.figure(figsize=(8, 5))
-            plt.scatter(X_axis, y_values)
+            plt.figure(figsize=(15, 5))
+            plt.plot(X_axis, y_values, "o-", markersize=7)
             plt.title(f"Kryterium {criterion}")
 
     plt.show()
 
 
-def create_full_ranking_df(df: pd.DataFrame, problem: pulp.LpProblem, criteria: List[str]):
+def create_full_ranking_df(
+    df: pd.DataFrame, problem: pulp.LpProblem, criteria: List[str]
+):
     output = []
     for v in problem.variables():
-        if 'epsilon' not in v.name and 'best' not in v.name and 'worst' not in v.name:
+        if "epsilon" not in v.name and "best" not in v.name and "worst" not in v.name:
             output.append((v.name, v.varValue))
-    partial_util = [f'u{i + 1}' for i in range(len(criteria))]
+    partial_util = [f"u{i + 1}" for i in range(len(criteria))]
     util_cols = pd.DataFrame(columns=partial_util + ["U"])
     df = pd.concat([df, util_cols], axis=1)
 
     criteria_util_map = {c: u for c, u in zip(criteria, partial_util)}
     for alternative, utility in output:
-        _, alt, criterion = alternative.split('_')
+        _, alt, criterion = alternative.split("_")
         alt = int(alt)
         col = criteria_util_map[criterion]
         df.loc[alt, col] = utility
-    df['U'] = df['u1'] + df['u2'] + df['u3'] + df['u4']
+    df["U"] = df["u1"] + df["u2"] + df["u3"] + df["u4"]
     return df
 
 
-def check_consistency(rank: pd.DataFrame, preferential_info: List[tuple], indiff_info: List[tuple], coef=1e-5):
-    final_rank = rank.sort_values(by='U', ascending=False).index.values
+def check_consistency(
+    rank: pd.DataFrame,
+    preferential_info: List[tuple],
+    indiff_info: List[tuple],
+    coef=1e-5,
+):
+    final_rank = rank.sort_values(by="U", ascending=False).index.values
     for pair in preferential_info:
-        if np.where(final_rank == pair[0])[0].item() > np.where(final_rank == pair[1])[0].item():
-            print(f'Inconsistency for pair: {pair}')
+        if (
+            np.where(final_rank == pair[0])[0].item()
+            > np.where(final_rank == pair[1])[0].item()
+        ):
+            print(f"Inconsistency for pair: {pair}")
             return False
     for pair in indiff_info:
         if abs(rank.loc[pair[0]].U - rank.loc[pair[1]].U) > coef:
-            print(f'Inconsistency for pair: {pair}')
+            print(f"Inconsistency for pair: {pair}")
     return True
