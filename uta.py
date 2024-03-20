@@ -174,3 +174,24 @@ def check_consistency(
         if abs(rank.loc[pair[0]].U - rank.loc[pair[1]].U) > coef:
             print(f"Inconsistency for pair: {pair}")
     return True
+
+
+def obtain_relations(rank: pd.DataFrame) -> (dict, dict):
+    partial_utilities = ['u'+str(i+1) for i in range(4)]
+    necessarily_preferred, possibly_preffered = {}, {}
+
+    for i, row in rank.iterrows():
+
+        if i not in necessarily_preferred.keys():
+            necessarily_preferred[i] = []
+            possibly_preffered[i] = []
+
+        for j, candidate in rank.iterrows():
+            if i != j:
+                if all(rank.iloc[i-1][partial_utilities] >= rank.iloc[j-1][partial_utilities]):
+                    necessarily_preferred[i].append(j)
+                    possibly_preffered[i].append(j)
+                elif any(rank.iloc[i-1][partial_utilities] >= rank.iloc[j-1][partial_utilities]):
+                    possibly_preffered[i].append(j)
+                    
+    return necessarily_preferred, possibly_preffered
