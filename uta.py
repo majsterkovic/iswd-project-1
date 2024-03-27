@@ -2,6 +2,7 @@ import pandas as pd
 import pulp
 import matplotlib.pyplot as plt
 import numpy as np
+# from networkx import graphvis_
 from typing import List, Tuple, Dict
 
 plt.style.use("ggplot")
@@ -174,6 +175,8 @@ def create_full_ranking_df(
     for i, row in df.iterrows():
         for j, criterion in enumerate(criteria):
             value = row[criterion]
+            if value not in f[criterion]:
+                interpolate(value, criterion)
             df.loc[i, f"u{j+1}"] = f[criterion][value]
 
     df["U"] = df["u1"] + df["u2"] + df["u3"] + df["u4"]
@@ -219,3 +222,29 @@ def obtain_relations(rank: pd.DataFrame) -> (dict, dict):
                     possibly_preffered[i].append(j)
                     
     return necessarily_preferred, possibly_preffered
+
+
+def interpolate(value: float, criterion: str):
+    min_diff_plus=1.0
+    min_diff_minus=1.0
+    cur_xi = -1
+    cur_xj = -1
+    xi = -1
+    xj = -1
+    
+    for candidate in f[criterion].keys():
+        if candidate > value:
+            diff_plus = candidate - value
+            if diff_plus < min_diff_plus:
+                min_diff_plus = diff_plus
+                xj = candidate
+        else:
+            diff_minus = value - candidate
+            if diff_minus < min_diff_minus:
+                min_diff_minus = diff_minus
+                xi = candidate
+                
+    u_xi = f[criterion][xi]
+    u_xj = f[criterion][xj]
+    f[criterion][value] = u_xi + ((u_xi - u_xj) / (xi - xj)) * (value - xi)
+    
