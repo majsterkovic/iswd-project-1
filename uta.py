@@ -2,18 +2,107 @@ import pandas as pd
 import pulp
 import matplotlib.pyplot as plt
 import numpy as np
+import pprint as pp
 # from networkx import graphvis_
 from typing import List, Tuple, Dict
 
 plt.style.use("ggplot")
-
+pulp.LpSolverDefault.msg = 0
 
 def solve_lp_problem(
     df: pd.DataFrame,
     preferential_info: List[tuple],
+    indifference_info: List[tuple],
+):
+    criteria = df.columns.tolist()
+    alternatives = {x for t in (preferential_info + indifference_info) for x in t}
+
+    problem = pulp.LpProblem("UTA", pulp.LpMaximize)
+
+    u_vars = {}
+    for alternative in alternatives:
+        for criterion in criteria:
+            value = df.loc[alternative, criterion]
+            criterion_no = criteria.index(criterion) + 1
+        
+            u_vars[(criterion, value)] = pulp.LpVariable(
+                f"u{criterion_no}({value})", lowBound=0, upBound=1
+            )
+
+    epsilon = pulp.LpVariable("epsilon", lowBound=0)
+    problem += epsilon
+
+    for a, b in preferential_info:
+        problem += (
+            pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria)
+            >= pulp.lpSum(u_vars[(c, df.loc[b, c])] for c in criteria) + epsilon
+        )
+
+    for a, b in indifference_info:
+        problem += pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria) == pulp.lpSum(
+            u_vars[(c, df.loc[b, c])] for c in criteria
+        )
+
+    worst_values = {criterion: df[criterion].max() for criterion in criteria}
+    best_values = {criterion: df[criterion].min() for criterion in criteria}
+    breakpoints = {criterion: sorted(df[criterion].unique()) for criterion in criteria}
+
+    u_best = []
+    u_worst = []
+
+    for criterion, value in worst_values.items():
+        if (criterion, value) not in u_vars:
+            criterion_no = criteria.index(criterion) + 1
+            u_vars[(criterion, value)] = pulp.LpVariable(f"u{criterion_no}({value})", lowBound=0, upBound=1)
+        u_worst.append(u_vars[(criterion, value)])
+
+    for criterion, value in best_values.items():
+        if (criterion, value) not in u_vars:
+            criterion_no = criteria.index(criterion) + 1
+            u_vars[(criterion, value)] = pulp.LpVariable(f"u{criterion_no}({value})", lowBound=0, upBound=1)
+        u_best.append(u_vars[(criterion, value)])
+
+
+    for criterion in breakpoints.keys():
+        for value in breakpoints[criterion]:
+            if (criterion, value) not in u_vars:
+                criterion_no = criteria.index(criterion) + 1
+                u_vars[(criterion, value)] = pulp.LpVariable(f"u{criterion_no}({value})", lowBound=0, upBound=1)
+
+    problem += pulp.lpSum(u_worst) == 0
+    problem += pulp.lpSum(u_best) == 1
+
+    weights_vars = [pulp.LpVariable(f"w{i}", lowBound=0, upBound=1) for i in range(len(criteria))]
+    for weight in weights_vars:
+        problem += weight >= 0 + 0.0001
+        problem += weight <= 0.5
+
+    for criterion in criteria:
+        problem += u_vars[(criterion, best_values[criterion])] == 1 * weights_vars[criteria.index(criterion)]
+
+        for i, value in enumerate(breakpoints[criterion]):
+
+            if value == best_values[criterion]:
+                continue
+
+            key1 = (criterion, breakpoints[criterion][i])
+            key2 = (criterion, breakpoints[criterion][i - 1])
+
+            problem += u_vars[key1] <= u_vars[key2]
+
+    problem.solve()
+    print("Status:", pulp.LpStatus[problem.status])
+    for v in problem.variables():
+        print(v.name, "=", v.varValue)
+
+    return problem, u_vars, criteria, breakpoints
+
+
+def solve_lp_problem_gms(
+    df: pd.DataFrame,
+    preferential_info: List[tuple],
     indiff_info: List[tuple],
-    verbose=True,
-    gms=False,
+    verbose=True
 ):
     criteria = df.columns.tolist()
     all_alternatives = df.index.tolist()
@@ -137,7 +226,50 @@ def solve_lp_problem(
 
     print("Status:", pulp.LpStatus[problem.status])
 
+
     return problem, u_vars, criteria, breakpoints
+
+def most_representative_function(
+        u_vars: Dict,
+        df: pd.DataFrame,
+        criteria: List[str],
+        problem: pulp.LpProblem,
+        necessary_preferred: Dict,
+        possibly_preferred: Dict,
+):
+    
+    delta = pulp.LpVariable("delta", lowBound=0)
+    
+    epsilon = pulp.LpVariable("epsilon", lowBound=0)
+
+    for a_variant in necessary_preferred.keys():
+        for b_variant in necessary_preferred[a_variant]:
+           #if a is necessarily preferred to b
+           # but b is not necessarily preferred to a
+            # add constraint to problem U(a) > U(b) + epsilon
+            if a_variant not in necessary_preferred[b_variant]:
+                problem += pulp.lpSum(u_vars[(c, df.loc[a_variant, c])] for c in criteria) >= pulp.lpSum(u_vars[(c, df.loc[b_variant, c])] for c in criteria) + epsilon
+
+    for c_variant in possibly_preferred.keys():
+            #if c is not necessarily preferred to d
+            # and d is not necessarily preferred to c
+            # add constraint to problem U(c)-U(d) <= delta and U(d)-U(c) <= delta
+            for d_variant in possibly_preferred[c_variant]:
+                if c_variant not in possibly_preferred[d_variant]:
+                    problem += pulp.lpSum(u_vars[(c, df.loc[c_variant, c])] for c in criteria) - pulp.lpSum(u_vars[(c, df.loc[d_variant, c])] for c in criteria) <= delta
+                    problem += pulp.lpSum(u_vars[(c, df.loc[d_variant, c])] for c in criteria) - pulp.lpSum(u_vars[(c, df.loc[c_variant, c])] for c in criteria) <= delta
+
+    # change objective function to minimize epsilon to maximize M*epsilon - delta
+    # create M variable
+
+    problem += 1000000 * epsilon - delta
+    print("Ostateczny problem do rozwiązania:")
+    print(problem)
+    problem.solve()
+    print("Status:", pulp.LpStatus[problem.status])
+    for v in problem.variables():
+        print(v.name, "=", v.varValue)
+
 
 f = {}
 
@@ -161,7 +293,7 @@ def plot_utility_functions(
             plt.figure(figsize=(15, 5))
             plt.plot([x[0] for x in series], [x[1] for x in series], "o-", markersize=7)
             plt.title(f"Kryterium {criterion}")
-    print(f)
+    pp.pprint(f)
     plt.show()
 
 

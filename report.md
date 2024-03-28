@@ -1,6 +1,12 @@
-Zadaniem projektu jest stworzenie rankingu różnych scenariuszy zarządzania odpadami radioaktywnymi z wykorzystaniem odpornej regresji porządkowej. Będziemy bazować na zbiorze danych opisanym w pracy "Nuclear waste management: an application of the multicriteria PROMETHEE methods".
+## Sprawozdanie z Projektu 1
+# Inteligentne Systemy Wspomagania Decyzji
 
-## Zadanie (3)
+Autorzy: Kamil Kałużny, Mariusz Hybiak
+
+## Wstęp
+
+Zadaniem projektu było stworzenie rankingu różnych scenariuszy zarządzania odpadami radioaktywnymi z wykorzystaniem odpornej regresji porządkowej. Bazą był zbiór danych opisanym w pracy "Nuclear waste management: an application of the multicriteria PROMETHEE methods".
+
 
 ### Opis preferencji
 Grupa 2
@@ -18,8 +24,7 @@ Grupa 4
 |4.|13|26|
 |5.|21|22|
 
-
-### Opis wariantów
+#### Opis kryteriów
 
 * S1: Zakłada 10-letnie przechowywanie ILW i 30-letnie przechowywanie HLW.
 * S2: Oba typy odpadów, ILW i HLW, są przechowywane przez 30 lat.
@@ -28,12 +33,15 @@ Grupa 4
 * F1 (metoda opłaty kWh): Opiera się na opłatach za każdy wyprodukowany kWh energii jądrowej, zbieranych w ciągu pierwszych 30 lat. Środki te mogą być akumulowane w funduszu powierniczym, generując odsetki na przyszłe wydatki.
 * F2 (metoda prorata): Zakłada nieograniczoną odpowiedzialność producenta odpadów, który pokrywa wszystkie koszty związane z kondycjonowaniem, przechowywaniem i składowaniem odpadów, zgodnie z ich występowaniem.
 * F3 (metoda opłaty za odpady): Opłaty są naliczane od producenta odpadów za każdą jednostkę dostarczanego do geologicznego składowiska odpadu. Koszty poniesione przed budową składowiska, transport i przechowywanie są finansowane bezpośrednio, a budowa składowiska jest finansowana z kredytu, który jest spłacany z wpływów z opłat.
+
 * R1, R2, R3: możliwe lokalizacje przechowywania odpadów.
 
 * C1 - całkowity koszt
 * C2 - koszty aktualnych konsumentów
 * C3 - koszty przyszłych konsumentów
 * C4 - ryzyko dodatkowych kosztów
+
+### Wybrane warianty i ich wartości na kryteriach
 
 |Oznaczenie| Wariant | Time scenario | Site | Financing | C1 $\downarrow$ | C2 $\downarrow$ | C3 $\downarrow$ | C4 $\downarrow$ |
 |-|----------|----|----|----|------|------|------|------|
@@ -62,3 +70,14 @@ U(e) = U(f) \\
 U(g) \ge U(h) + \epsilon \\
 U(i) = U(j)
 $$
+
+Zostało dodane dodatkowe ograniczenie, aby żadna z wag nie była większa niż 0.5 oraz nie była równa 0.
+
+## Zadanie (3)
+
+Wyniki są zgodne z informacją preferencyjną. Udało się odtworzyć ranking.
+Na górze rankingu (oprócz wariantów 5 i 1) znalazły się niereferencyjne warianty 10 oraz 8. Wariant 10 ma niską wartość na kryterium C3, a wariant 3 ma dość nisie wartości na kryterium C4 i C3, co sprawia, że są zgodne z obraną strategią dla obu grup.
+
+## Zadanie (4)
+
+## Zadanie (5)
