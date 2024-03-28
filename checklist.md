@@ -16,8 +16,10 @@
 - [ ] Powtórzenie kroków z Zadania 3 z dodatkowymi wymaganiami:
   - [ ] **Przygotowanie diagramu Hasse’go** na podstawie koniecznej relacji preferencji.
   - [ ] **Krótki opis uzyskanych relacji**.
+  - [ ] Ustalić co z wagami
 
 ### Zadanie 5: Znalezienie Reprezentatywnej Funkcji Użyteczności
 - [ ] Powtórzenie kroków z Zadania 4 z dodatkowymi wymaganiami:
   - [ ] **Wynik uzyskany z solvera dla reprezentatywnej funkcji użyteczności**.
   - [ ] **Porównanie wyniku z wynikami z Zadania 3**.
+
