@@ -79,8 +79,10 @@ Zostało dodane dodatkowe ograniczenie, aby żadna z wag nie była większa niż
 
 Wyniki są zgodne z informacją preferencyjną. Udało się odtworzyć ranking.
 Na górze rankingu (oprócz wariantów 5 i 1) znalazły się niereferencyjne warianty 10 oraz 8. Wariant 10 ma niską wartość na kryterium C3, a wariant 3 ma dość nisie wartości na kryterium C4 i C3, co sprawia, że są zgodne z obraną strategią dla obu grup. <br> <br>
-Wykresy funkcji użyteczności cząstkowych z uwzględnieniem wariantów nie znajdujących się w rankingu referencyjnym (dla nich zastosowana została interpolacja):
-![alt text](image.png)
+Wykresy funkcji użyteczności cząstkowych z uwzględnieniem wariantów nie znajdujących się w rankingu referencyjnym (dla nich zastosowana została interpolacja): <br>
+![image](https://github.com/majsterkovic/iswd-project-1/assets/82380348/a1447ee3-64cf-4925-8592-def226154205)
+
+
 <br> <br>
 Wartości użyteczności wszystkich wariantów posortowane malejąco. <br>
 |    |   C1 |   C2 |   C3 |   C4 |     u1 |     u2 |     u3 |     u4 |      U |
@@ -117,7 +119,8 @@ Wartości użyteczności wszystkich wariantów posortowane malejąco. <br>
 W tym wypadku model również jest spójny z zadaną informacją preferencyjną. Dla tego przypadku, zgodnie z założeniami odnoszącymi się do preferencji decydenta przydzieliliśmy poszczególnym kryteriom C1,C2,C3 i C4 kolejno wagi: 0.2, 0.18, 0.3, 0.32. <br>
 
 Wykresy funkcji użyteczności cząstkowych:<br>
-![alt text](image-2.png)
+![image](https://github.com/majsterkovic/iswd-project-1/assets/82380348/0dff37a4-4767-4b65-a140-49ff3a7a0514)
+
 
 Wartości użyteczności wszystkich wariantów posortowane malejąco:
 |    |   C1 |   C2 |   C3 |   C4 |   u1 |   u2 |   u3 |   u4 |    U |
