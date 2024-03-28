@@ -153,7 +153,11 @@ def solve_lp_problem_gms(
     problem += pulp.lpSum(u_worst) == 0
     problem += pulp.lpSum(u_best) == 1
 
-    weights = [0.2, 0.18, 0.3, 0.32]
+    # weights = [0.2, 0.18, 0.3, 0.32]
+    weights_vars = [pulp.LpVariable(f"w{i}", lowBound=0, upBound=1) for i in range(len(criteria))]
+    for weight in weights_vars:
+        problem += weight >= 0 + 0.0001
+        problem += weight <= 0.5
 
     breakpoints = {}
     for criterion in criteria:
@@ -174,7 +178,7 @@ def solve_lp_problem_gms(
 
         value = df.loc[breakpoints[criterion][-1][0], criterion]
         key = (criterion, value)
-        problem += u_best[i] == 1 * weights[i]
+        problem += u_best[i] == 1 * weights_vars[i]
         problem += u_vars[key] <= u_best[i]
 
 
