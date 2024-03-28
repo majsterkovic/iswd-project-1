@@ -81,7 +81,7 @@ Wynik funkcji celu programowania matematycznego: $\epsilon = 0.0625$
 
 Wyniki są zgodne z informacją preferencyjną. Udało się odtworzyć ranking.
 Na górze rankingu (oprócz wariantów 5 i 1) znalazły się niereferencyjne warianty 10 oraz 8. Wariant 10 ma niską wartość na kryterium C3, a wariant 3 ma dość nisie wartości na kryterium C4 i C3, co sprawia, że są zgodne z obraną strategią dla obu grup. <br> <br>
-Wykresy funkcji użyteczności cząstkowych z uwzględnieniem wariantów nie znajdujących się w rankingu referencyjnym (dla nich zastosowana została interpolacja): <br>
+Wykresy funkcji użyteczności cząstkowych z uwzględnieniem wariantów nie znajdujących się w rankingu referencyjnym:<br>
 ![](uta.png)
 
 
@@ -117,7 +117,7 @@ Wartości użyteczności wszystkich wariantów posortowane malejąco. <br>
 | 27 | 0.8  | 0.06 | 1    | 0.67 | 0      | 0.1875 | 0      | 0.25   | 0.4375 |
 | 25 | 0.34 | 1    | 1    | 1    | 0.125  | 0      | 0      | 0      | 0.125  |
 
-Na podstawie wariantów nierefrencyjnyc z powyższej tabeli widać że uzyskany ranking jest zgodny z naszymi założeniami, najważniejszymi kryteriami w kontekście użyteczności wydają się być C3 i C4.
+Na podstawie wariantów nierefrencyjnych z powyższej tabeli widać że uzyskany ranking jest zgodny z naszymi założeniami, najważniejszymi kryteriami w kontekście użyteczności wydają się być C3 i C4. Na końcu znalazły się warianty z kiepskimi ocenami na tym kryterium.
 
 ## Zadanie (4)
 
@@ -173,3 +173,42 @@ Jak widać na załączonym obrazku diagram dla wszystkich wariantów jest bardzo
 Uzyskane z tabeli z wartościami użyteczności relacje konieczne i możliwe są spójne. Wskazuje na to również powyższy podzbiór diagramu Hasse'go, nastęouje w nim pełne odwzorowanie informacji preferencyjnej dla preferencji wariantu 5 nad 1. Jest w nim również dużo wariantów nieporównywalnych. 
 
 ## Zadanie (5)
+
+Wynik funkcji celu programowania matematycznego: $M\epsilon - \delta = 66666.667$.
+
+Wykresy funkcji użyteczności cząstkowych:<br>
+![](representative.png)
+
+|    |   C1 |   C2 |   C3 |   C4 |       u1 |       u2 |     u3 |       u4 |        U |
+|---:|-----:|-----:|-----:|-----:|---------:|---------:|-------:|---------:|---------:|
+|  5 | 0.62 | 0.4  | 0.56 | 0.5  | 0.333267 | 0.333267 | 0.0001 | 0.333367 | 1        |
+| 14 | 0.69 | 0.49 | 0.56 | 0.61 | 0.333267 | 0.333167 | 0.0001 | 0.333367 | 0.9999   |
+| 11 | 0.61 | 0.54 | 0.38 | 0.49 | 0.333267 | 0.333167 | 0.0001 | 0.333367 | 0.9999   |
+| 17 | 0.68 | 0.4  | 0.65 | 0.6  | 0.333267 | 0.333267 | 0      | 0.333367 | 0.9999   |
+|  2 | 0.66 | 0.55 | 0.45 | 0.49 | 0.333267 | 0.333167 | 0.0001 | 0.333367 | 0.9999   |
+|  8 | 0.64 | 0.44 | 0.54 | 0.54 | 0.333267 | 0.333167 | 0.0001 | 0.333367 | 0.9999   |
+|  9 | 0.65 | 0.3  | 0.71 | 0.55 | 0.333267 | 0.333267 | 0      | 0.333367 | 0.9999   |
+| 15 | 0.87 | 0.03 | 1    | 0.61 | 0        | 0.333267 | 0      | 0.333367 | 0.666633 |
+| 12 | 0.74 | 0.25 | 0.8  | 0.49 | 0        | 0.333267 | 0      | 0.333367 | 0.666633 |
+| 18 | 0.76 | 0.06 | 1    | 0.6  | 0        | 0.333267 | 0      | 0.333367 | 0.666633 |
+|  6 | 0.78 | 0.27 | 0.71 | 0.5  | 0        | 0.333267 | 0      | 0.333367 | 0.666633 |
+| 20 | 0.64 | 0.22 | 0.81 | 0.65 | 0.333267 | 0.333267 | 0      | 0        | 0.666533 |
+|  7 | 0.4  | 0.9  | 0    | 0.82 | 0.333267 | 0.333167 | 0.0001 | 0        | 0.666533 |
+| 23 | 0.59 | 0.24 | 0.7  | 0.63 | 0.333267 | 0.333267 | 0      | 0        | 0.666533 |
+|  4 | 0.48 | 0.87 | 0    | 0.75 | 0.333267 | 0.333167 | 0.0001 | 0        | 0.666533 |
+| 22 | 0.32 | 0.83 | 0    | 0.94 | 0.333267 | 0.333167 | 0.0001 | 0        | 0.666533 |
+|  3 | 1    | 0.45 | 0.57 | 0.5  | 0        | 0.333167 | 0      | 0.333367 | 0.666533 |
+| 10 | 0.45 | 0.86 | 0    | 0.73 | 0.333267 | 0.333167 | 0.0001 | 0        | 0.666533 |
+|  1 | 0.6  | 0.93 | 0    | 0.73 | 0.333267 | 0        | 0.0001 | 0        | 0.333367 |
+| 19 | 0.35 | 0.91 | 0    | 0.98 | 0.333267 | 0        | 0.0001 | 0        | 0.333367 |
+| 16 | 0.44 | 0.95 | 0    | 0.9  | 0.333267 | 0        | 0.0001 | 0        | 0.333367 |
+| 13 | 0.48 | 0.97 | 0    | 0.91 | 0.333267 | 0        | 0.0001 | 0        | 0.333367 |
+| 21 | 0.83 | 0.25 | 0.8  | 0.65 | 0        | 0.333267 | 0      | 0        | 0.333267 |
+| 24 | 0.73 | 0.03 | 1    | 0.63 | 0        | 0.333267 | 0      | 0        | 0.333267 |
+| 25 | 0.34 | 1    | 1    | 1    | 0.333267 | 0        | 0      | 0        | 0.333267 |
+| 26 | 0.71 | 0.25 | 0.88 | 0.67 | 0        | 0.333267 | 0      | 0        | 0.333267 |
+| 27 | 0.8  | 0.06 | 1    | 0.67 | 0        | 0.333267 | 0      | 0        | 0.333267 |
+
+Ranking wariantów, wygenerowany w oparciu o reprezentatywną funkcję użyteczności, jest zgodny ze strategią decydenta oraz z uwzględnionymi przez niego preferencjami. Warianty, które znalazły się na czołowych pozycjach rankingu, charakteryzują się niskimi wartościami na kryterium C4 (ryzyko dodatkowych kosztów), co jest zgodne z założeniami grupy 2 i 4. Solver zminimalizował tu rolę kryterium C3 ustawiając niską wagę.
+
+Porównując wyniki z wynikami z zadania (3) można zauważyć, że na pierwszym miejscu w rankingu znalazł się ten sam wariant 5, podobnie na końcu jest wariant 25. Tabele różnią się jednak zdecydowanie kolejnością wariantów pomiędzy tymi dwoma zadaniami. Zachowany został jednak ogólny trend i odtworzony zadany ranking.
