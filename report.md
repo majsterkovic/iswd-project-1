@@ -115,6 +115,8 @@ Wartości użyteczności wszystkich wariantów posortowane malejąco. <br>
 | 27 | 0.8  | 0.06 | 1    | 0.67 | 0      | 0.1875 | 0      | 0.25   | 0.4375 |
 | 25 | 0.34 | 1    | 1    | 1    | 0.125  | 0      | 0      | 0      | 0.125  |
 
+Na podstawie wariantów nierefrencyjnyc z powyższej tabeli widać że uzyskany ranking jest zgodny z naszymi założeniami, najważniejszymi kryteriami w kontekście użyteczności wydają się być C3 i C4.
+
 ## Zadanie (4)
 W tym wypadku model również jest spójny z zadaną informacją preferencyjną.
 
@@ -159,5 +161,6 @@ Diagram Hasse'go: <br>
 Jak widać na załączonym obrazku diagram dla wszystkich wariantów jest bardzo nieczytelny, dlatego załączamy również jego podzbiór rozważający tylko nasze warianty znajdujące się w informacji preferencyjnej: <br>
 ![Hesse](https://github.com/majsterkovic/iswd-project-1/assets/82380348/b7f279cb-1349-4c0d-9dd1-70b8ff36534c)
 
+Uzyskane z tabeli z wartościami użyteczności relacje konieczne i możliwe są spójne. Wskazuje na to również powyższy podzbiór diagramu Hasse'go, nastęouje w nim pełne odwzorowanie informacji preferencyjnej dla preferencji wariantu 5 nad 1. Jest w nim również dużo wariantów nieporównywalnych. 
 
 ## Zadanie (5)
