@@ -13,42 +13,43 @@ def solve_lp_problem(
     df: pd.DataFrame,
     preferential_info: List[tuple],
     indifference_info: List[tuple],
+    verbose=False
 ):
     criteria = df.columns.tolist()
     alternatives = {x for t in (preferential_info + indifference_info) for x in t}
 
     problem = pulp.LpProblem("UTA", pulp.LpMaximize)
+    epsilon = pulp.LpVariable("epsilon", lowBound=0)
+    problem += epsilon
+
+    if verbose:
+        print("Zdefiniowano funkcję celu")
 
     u_vars = {}
     for alternative in alternatives:
         for criterion in criteria:
             value = df.loc[alternative, criterion]
             criterion_no = criteria.index(criterion) + 1
-        
-            u_vars[(criterion, value)] = pulp.LpVariable(
-                f"u{criterion_no}({value})", lowBound=0, upBound=1
-            )
+            u_vars[(criterion, value)] = pulp.LpVariable(f"u{criterion_no}({value})", lowBound=0, upBound=1)
 
-    epsilon = pulp.LpVariable("epsilon", lowBound=0)
-    problem += epsilon
+    if verbose:
+        print("Zdefiniowano zmienne decyzyjne dla każdej alternatywy i kryterium")
 
     for a, b in preferential_info:
-        problem += (
-            pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria)
-            >= pulp.lpSum(u_vars[(c, df.loc[b, c])] for c in criteria) + epsilon
-        )
+        problem += (pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria) \
+            >= pulp.lpSum(u_vars[(c, df.loc[b, c])] for c in criteria) + epsilon)
 
     for a, b in indifference_info:
-        problem += pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria) == pulp.lpSum(
-            u_vars[(c, df.loc[b, c])] for c in criteria
-        )
+        problem += pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria) \
+            == pulp.lpSum(u_vars[(c, df.loc[b, c])] for c in criteria)
+        
+    if verbose:
+        print("Dodano ograniczenia wynikające z preporządku")
 
     worst_values = {criterion: df[criterion].max() for criterion in criteria}
     best_values = {criterion: df[criterion].min() for criterion in criteria}
     breakpoints = {criterion: sorted(df[criterion].unique()) for criterion in criteria}
-
-    u_best = []
-    u_worst = []
+    u_best, u_worst = [], []
 
     for criterion, value in worst_values.items():
         if (criterion, value) not in u_vars:
@@ -62,12 +63,14 @@ def solve_lp_problem(
             u_vars[(criterion, value)] = pulp.LpVariable(f"u{criterion_no}({value})", lowBound=0, upBound=1)
         u_best.append(u_vars[(criterion, value)])
 
-
     for criterion in breakpoints.keys():
         for value in breakpoints[criterion]:
             if (criterion, value) not in u_vars:
                 criterion_no = criteria.index(criterion) + 1
                 u_vars[(criterion, value)] = pulp.LpVariable(f"u{criterion_no}({value})", lowBound=0, upBound=1)
+
+    if verbose:
+        print("Zdefiniowano zmienne decyzyjne dla wartości kryteriów")
 
     problem += pulp.lpSum(u_worst) == 0
     problem += pulp.lpSum(u_best) == 1
@@ -79,19 +82,19 @@ def solve_lp_problem(
 
     for criterion in criteria:
         problem += u_vars[(criterion, best_values[criterion])] == 1 * weights_vars[criteria.index(criterion)]
-
         for i, value in enumerate(breakpoints[criterion]):
-
             if value == best_values[criterion]:
                 continue
-
             key1 = (criterion, breakpoints[criterion][i])
             key2 = (criterion, breakpoints[criterion][i - 1])
-
             problem += u_vars[key1] <= u_vars[key2]
+
+    if verbose:
+        print("Dodano ograniczenia wynikające z normalizacji i monotoniczności")
 
     problem.solve()
     print("Status:", pulp.LpStatus[problem.status])
+
     for v in problem.variables():
         print(v.name, "=", v.varValue)
 
@@ -102,63 +105,44 @@ def solve_lp_problem_gms(
     df: pd.DataFrame,
     preferential_info: List[tuple],
     indiff_info: List[tuple],
-    verbose=True
+    verbose=False
 ):
     criteria = df.columns.tolist()
     all_alternatives = df.index.tolist()
     info = preferential_info + indiff_info
     reference_alternatives = list(set([x for pair in info for x in pair]))
 
-
-    print("Wszystkie alternatywy:", all_alternatives)
-    print("Alternatywy referencyjne:", reference_alternatives)
-
-    pulp.LpSolverDefault.msg = 0
-    problem = pulp.LpProblem("UTA", pulp.LpMaximize)
-    print("Kryteria:", criteria)
-
-    # VARIABLES
+    problem = pulp.LpProblem("UTA_GMS", pulp.LpMaximize)
+    epsilon = pulp.LpVariable("epsilon", lowBound=0)
+    problem += epsilon
+    
+    if verbose:
+        print("Zdefiniowano funkcję celu")
+  
     u_vars = {}
     for alternative in all_alternatives:
         for criterion in criteria:
             value = df.loc[alternative, criterion]
             criterion_no = criteria.index(criterion) + 1
+            u_vars[(criterion, value)] = pulp.LpVariable(f"u{criterion_no}({value})", lowBound=0, upBound=1)
 
-            u_vars[(criterion, value)] = pulp.LpVariable(
-                f"u{criterion_no}({value})", lowBound=0
-            )
-            if verbose:
-                print(
-                    "Stworzono zmienną decyzyjną:",
-                    u_vars[(criterion, value)],
-                    "o dolnym ograniczeniu 0",
-                )
+    if verbose:
+        print("Zdefiniowano zmienne decyzyjne dla każdej alternatywy i kryterium")
 
-    epsilon = pulp.LpVariable("epsilon", lowBound=-100)
-    print("Stworzono zmienną decyzyjną:", epsilon, "o dolnym ograniczeniu 0")
-    problem += epsilon
-    print("Dodano funkcję celu:", problem.objective)
-
-    # REFERENCE RANKING
     for a, b in preferential_info:
-        problem += (
-            pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria)
-            >= pulp.lpSum(u_vars[(c, df.loc[b, c])] for c in criteria) + epsilon
-        )
+        problem += (pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria) \
+            >= pulp.lpSum(u_vars[(c, df.loc[b, c])] for c in criteria) + epsilon)
 
     for a, b in indiff_info:
-        problem += pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria) == pulp.lpSum(
-            u_vars[(c, df.loc[b, c])] for c in criteria
-        )
-
-    print("Dodano ograniczenia wynikające z rankingu referencyjnego")
-
-    # NORMALIZATION and NON-NEGATIVITY
+        problem += pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria) \
+            == pulp.lpSum(u_vars[(c, df.loc[b, c])] for c in criteria)
+        
+    if verbose:
+        print("Dodano ograniczenia wynikające z rankingu referencyjnego")
 
     worst_values = {criterion: df[criterion].max() for criterion in criteria}
     best_values = {criterion: df[criterion].min() for criterion in criteria}
-    u_best = []
-    u_worst = []
+    u_best, u_worst = [], []
 
     for criterion, value in worst_values.items():
         u_worst.append(u_vars[(criterion, value)])
@@ -166,11 +150,10 @@ def solve_lp_problem_gms(
     for criterion, value in best_values.items():
         u_best.append(u_vars[(criterion, value)])
 
-    # globally worst and best
     problem += pulp.lpSum(u_worst) == 0
     problem += pulp.lpSum(u_best) == 1
 
-    weights = [0.2, 0.18, 0.3, 0.32]  # TODO
+    weights = [0.2, 0.18, 0.3, 0.32]
 
     breakpoints = {}
     for criterion in criteria:
@@ -184,39 +167,32 @@ def solve_lp_problem_gms(
         breakpoints[criterion].sort(key=lambda x: x[1], reverse=True)
 
     for i, criterion in enumerate(breakpoints):
-        # worst from reference
         value = df.loc[breakpoints[criterion][0][0], criterion]
         key = (criterion, value)
         problem += u_worst[i] == 0
         problem += u_worst[i] <= u_vars[key]
 
-        # best from reference
         value = df.loc[breakpoints[criterion][-1][0], criterion]
         key = (criterion, value)
         problem += u_best[i] == 1 * weights[i]
         problem += u_vars[key] <= u_best[i]
 
-    print("Dodano ograniczenia wynikające z normalizacji i nieujemnosci")
 
-    # MONOTONICITY
     for criterion in criteria:
         for i in range(1, len(breakpoints[criterion])):
-
             couple = (breakpoints[criterion][i - 1][0], breakpoints[criterion][i][0])
             couple_reversed = (breakpoints[criterion][i][0], breakpoints[criterion][i - 1][0])
-
             if couple in indiff_info or couple_reversed in indiff_info:
                 continue
-
             value1 = df.loc[breakpoints[criterion][i - 1][0], criterion]
             value2 = df.loc[breakpoints[criterion][i][0], criterion]
-
             key1 = (criterion, value1)
             key2 = (criterion, value2)
             problem += u_vars[key2] >= u_vars[key1]
 
-    print("Dodano ograniczenia wynikające z monotoniczności")
-    print("Ostateczny problem do rozwiązania:")
+    if verbose:
+        print("Dodano ograniczenia wynikające z normalizacji")
+
     problem.solve()
 
     if verbose:
@@ -226,49 +202,117 @@ def solve_lp_problem_gms(
 
     print("Status:", pulp.LpStatus[problem.status])
 
-
-    return problem, u_vars, criteria, breakpoints
+    return problem, u_vars, criteria
 
 def most_representative_function(
-        u_vars: Dict,
         df: pd.DataFrame,
-        criteria: List[str],
-        problem: pulp.LpProblem,
+        preferential_info: List[tuple],
+        indiff_info: List[tuple],
         necessary_preferred: Dict,
         possibly_preferred: Dict,
+        verbose=True,
 ):
     
+    criteria = df.columns.tolist()
+    all_alternatives = df.index.tolist()
+
+    problem = pulp.LpProblem("UTA", pulp.LpMaximize)
+
+    u_vars = {}
+    for alternative in all_alternatives:
+        for criterion in criteria:
+            value = df.loc[alternative, criterion]
+            criterion_no = criteria.index(criterion) + 1
+
+            u_vars[(criterion, value)] = pulp.LpVariable(f"u{criterion_no}({value})", lowBound=0, upBound=1)
+
     delta = pulp.LpVariable("delta", lowBound=0)
-    
     epsilon = pulp.LpVariable("epsilon", lowBound=0)
+    problem += 1000000 * epsilon - delta
+
+    for a, b in preferential_info:
+        problem += (pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria) \
+            >= pulp.lpSum(u_vars[(c, df.loc[b, c])] for c in criteria) + epsilon)
+
+    for a, b in indiff_info:
+        problem += pulp.lpSum(u_vars[(c, df.loc[a, c])] for c in criteria) \
+            == pulp.lpSum(u_vars[(c, df.loc[b, c])] for c in criteria)
+
+    worst_values = {criterion: df[criterion].max() for criterion in criteria}
+    best_values = {criterion: df[criterion].min() for criterion in criteria}
+    u_best, u_worst = [], []
+
+    for criterion, value in worst_values.items():
+        u_worst.append(u_vars[(criterion, value)])
+
+    for criterion, value in best_values.items():
+        u_best.append(u_vars[(criterion, value)])
+
+    problem += pulp.lpSum(u_worst) == 0
+    problem += pulp.lpSum(u_best) == 1
+
+    weights = [0.2, 0.18, 0.3, 0.32]
+
+    breakpoints = {}
+    for criterion in criteria:
+        for _ in all_alternatives:
+            breakpoints[criterion] = []
+    for criterion in criteria:
+        for alternative in all_alternatives:
+            breakpoints[criterion].append((alternative, df.loc[alternative, criterion]))
+
+    for criterion in criteria:
+        breakpoints[criterion].sort(key=lambda x: x[1], reverse=True)
+
+    for i, criterion in enumerate(breakpoints):
+        value = df.loc[breakpoints[criterion][0][0], criterion]
+        key = (criterion, value)
+        problem += u_worst[i] == 0
+        problem += u_worst[i] <= u_vars[key]
+
+        value = df.loc[breakpoints[criterion][-1][0], criterion]
+        key = (criterion, value)
+        problem += u_best[i] == 1 * weights[i]
+        problem += u_vars[key] <= u_best[i]
+
+    for criterion in criteria:
+        for i in range(1, len(breakpoints[criterion])):
+            couple = (breakpoints[criterion][i - 1][0], breakpoints[criterion][i][0])
+            couple_reversed = (breakpoints[criterion][i][0], breakpoints[criterion][i - 1][0])
+            if couple in indiff_info or couple_reversed in indiff_info:
+                continue
+            value1 = df.loc[breakpoints[criterion][i - 1][0], criterion]
+            value2 = df.loc[breakpoints[criterion][i][0], criterion]
+            key1 = (criterion, value1)
+            key2 = (criterion, value2)
+            problem += u_vars[key2] >= u_vars[key1]
 
     for a_variant in necessary_preferred.keys():
         for b_variant in necessary_preferred[a_variant]:
-           #if a is necessarily preferred to b
-           # but b is not necessarily preferred to a
-            # add constraint to problem U(a) > U(b) + epsilon
             if a_variant not in necessary_preferred[b_variant]:
                 problem += pulp.lpSum(u_vars[(c, df.loc[a_variant, c])] for c in criteria) >= pulp.lpSum(u_vars[(c, df.loc[b_variant, c])] for c in criteria) + epsilon
 
     for c_variant in possibly_preferred.keys():
-            #if c is not necessarily preferred to d
-            # and d is not necessarily preferred to c
-            # add constraint to problem U(c)-U(d) <= delta and U(d)-U(c) <= delta
             for d_variant in possibly_preferred[c_variant]:
-                if c_variant not in possibly_preferred[d_variant]:
-                    problem += pulp.lpSum(u_vars[(c, df.loc[c_variant, c])] for c in criteria) - pulp.lpSum(u_vars[(c, df.loc[d_variant, c])] for c in criteria) <= delta
-                    problem += pulp.lpSum(u_vars[(c, df.loc[d_variant, c])] for c in criteria) - pulp.lpSum(u_vars[(c, df.loc[c_variant, c])] for c in criteria) <= delta
-
-    # change objective function to minimize epsilon to maximize M*epsilon - delta
-    # create M variable
-
-    problem += 1000000 * epsilon - delta
-    print("Ostateczny problem do rozwiązania:")
-    print(problem)
+                if c_variant not in possibly_preferred[d_variant] and d_variant not in possibly_preferred[c_variant]:
+                    problem += \
+                        pulp.lpSum(u_vars[(c, df.loc[c_variant, c])] for c in criteria) \
+                            - pulp.lpSum(u_vars[(c, df.loc[d_variant, c])] for c in criteria) <= delta
+                    
+                    problem += \
+                         pulp.lpSum(u_vars[(c, df.loc[d_variant, c])] for c in criteria) \
+                            - pulp.lpSum(u_vars[(c, df.loc[c_variant, c])] for c in criteria) <= delta
+                    
     problem.solve()
+
+    if verbose:
+        print(problem)
+        for v in problem.variables():
+            print(v.name, "=", v.varValue)
+
     print("Status:", pulp.LpStatus[problem.status])
-    for v in problem.variables():
-        print(v.name, "=", v.varValue)
+
+    return problem, u_vars, criteria
 
 
 f = {}
@@ -277,7 +321,6 @@ def plot_utility_functions(
     problem: pulp.LpProblem,
     u_vars: Dict,
     criteria: List[str],
-    breakpoints: Dict[str, List[Tuple[str, float]]],
 ):
     if pulp.LpStatus[problem.status] == "Optimal":
         for criterion in criteria:
@@ -293,7 +336,6 @@ def plot_utility_functions(
             plt.figure(figsize=(15, 5))
             plt.plot([x[0] for x in series], [x[1] for x in series], "o-", markersize=7)
             plt.title(f"Kryterium {criterion}")
-    pp.pprint(f)
     plt.show()
 
 
@@ -322,20 +364,22 @@ def check_consistency(
     coef=1e-5,
 ):
     final_rank = rank.sort_values(by="U", ascending=False).index.values
+    marker = True
     for pair in preferential_info:
         if (
             np.where(final_rank == pair[0])[0].item()
             > np.where(final_rank == pair[1])[0].item()
         ):
             print(f"Inconsistency for pair: {pair}")
-            return False
+            marker = False
     for pair in indiff_info:
         if abs(rank.loc[pair[0]].U - rank.loc[pair[1]].U) > coef:
             print(f"Inconsistency for pair: {pair}")
-    return True
+            marker = False
+    return marker
 
 
-def obtain_relations(rank: pd.DataFrame) -> (dict, dict):
+def obtain_relations(rank: pd.DataFrame) -> Tuple[dict, dict]:
     partial_utilities = ['u'+str(i+1) for i in range(4)]
     necessarily_preferred, possibly_preffered = {}, {}
 
