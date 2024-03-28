@@ -80,7 +80,7 @@ Zostało dodane dodatkowe ograniczenie, aby żadna z wag nie była większa niż
 Wyniki są zgodne z informacją preferencyjną. Udało się odtworzyć ranking.
 Na górze rankingu (oprócz wariantów 5 i 1) znalazły się niereferencyjne warianty 10 oraz 8. Wariant 10 ma niską wartość na kryterium C3, a wariant 3 ma dość nisie wartości na kryterium C4 i C3, co sprawia, że są zgodne z obraną strategią dla obu grup. <br> <br>
 Wykresy funkcji użyteczności cząstkowych z uwzględnieniem wariantów nie znajdujących się w rankingu referencyjnym (dla nich zastosowana została interpolacja): <br>
-![image](https://github.com/majsterkovic/iswd-project-1/assets/82380348/a1447ee3-64cf-4925-8592-def226154205)
+![](uta.png)
 
 
 <br> <br>
@@ -121,7 +121,7 @@ Na podstawie wariantów nierefrencyjnyc z powyższej tabeli widać że uzyskany 
 W tym wypadku model również jest spójny z zadaną informacją preferencyjną.
 
 Wykresy funkcji użyteczności cząstkowych:<br>
-![gms](https://github.com/majsterkovic/iswd-project-1/assets/82380348/40fe94b0-eb91-4135-b962-de325c0c04ba)
+![](gms.png)
 
 
 Wartości użyteczności wszystkich wariantów posortowane malejąco:
@@ -156,10 +156,10 @@ Wartości użyteczności wszystkich wariantów posortowane malejąco:
 | 27 | 0.8  | 0.06 | 1    | 0.67 | 0        | 0.333267 | 0      | 0        | 0.333267 |
 
 Diagram Hasse'go: <br>
-![Hesse_full](https://github.com/majsterkovic/iswd-project-1/assets/82380348/91c12e93-96c9-4b1a-ae3e-c35a68899bc9)
+![](Hesse_full.png)
 
 Jak widać na załączonym obrazku diagram dla wszystkich wariantów jest bardzo nieczytelny, dlatego załączamy również jego podzbiór rozważający tylko nasze warianty znajdujące się w informacji preferencyjnej: <br>
-![Hesse](https://github.com/majsterkovic/iswd-project-1/assets/82380348/b7f279cb-1349-4c0d-9dd1-70b8ff36534c)
+![](Hesse.png)
 
 Uzyskane z tabeli z wartościami użyteczności relacje konieczne i możliwe są spójne. Wskazuje na to również powyższy podzbiór diagramu Hasse'go, nastęouje w nim pełne odwzorowanie informacji preferencyjnej dla preferencji wariantu 5 nad 1. Jest w nim również dużo wariantów nieporównywalnych. 
 
