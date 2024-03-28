@@ -59,23 +59,25 @@ Grupa 4
 ### Wstępna strategia:
 * Grupa 2: Zwiększenie ilości odpadów w przyszłości może zwiększyć przyszłe koszty, z tego względu najważniejsze wydaje się kryterium C3, warto również wyróżnić S1 minimalizujące długość przechowywania odpadów a także F2.
 
-* Grupa 4: Inwestorowi zależy na stałych dochodach, bezpieczeństwie i stabilności, w tym celu szczególną uwagę trzeba poświęcić na kryterium C4, niezależnym od niego finansowaniu F2 oraz bezpiecznym czasie przechowywania S3.
+* Grupa 4: Inwestorowi zależy na stałych dochodach, bezpieczeństwie i stabilności, w tym celu szczególną uwagę trzeba poświęcić na kryterium C4 oraz niezależnym od niego finansowaniu F2.
 
 
 ### Zapis informacji preferencyjnej
 $$
-\begin{flalign*}
+\begin{align}
     U(b) &\ge U(a) + \epsilon \\
     U(c) &\ge U(d) + \epsilon\\
     U(e) &= U(f) \\
     U(g) &\ge U(h) + \epsilon \\
     U(i) &= U(j)
-\end{flalign*}
+\end{align}
 $$
 
 Zostało dodane dodatkowe ograniczenie, aby żadna z wag nie była większa niż 0.5 oraz nie była równa 0.
 
 ## Zadanie (3)
+
+Wynik funkcji celu programowania matematycznego: $\epsilon = 0.0625$
 
 Wyniki są zgodne z informacją preferencyjną. Udało się odtworzyć ranking.
 Na górze rankingu (oprócz wariantów 5 i 1) znalazły się niereferencyjne warianty 10 oraz 8. Wariant 10 ma niską wartość na kryterium C3, a wariant 3 ma dość nisie wartości na kryterium C4 i C3, co sprawia, że są zgodne z obraną strategią dla obu grup. <br> <br>
@@ -118,6 +120,10 @@ Wartości użyteczności wszystkich wariantów posortowane malejąco. <br>
 Na podstawie wariantów nierefrencyjnyc z powyższej tabeli widać że uzyskany ranking jest zgodny z naszymi założeniami, najważniejszymi kryteriami w kontekście użyteczności wydają się być C3 i C4.
 
 ## Zadanie (4)
+
+Wynik funkcji celu programowania matematycznego: $\epsilon \approx 0.66$
+
+
 W tym wypadku model również jest spójny z zadaną informacją preferencyjną.
 
 Wykresy funkcji użyteczności cząstkowych:<br>
@@ -154,6 +160,9 @@ Wartości użyteczności wszystkich wariantów posortowane malejąco:
 | 25 | 0.34 | 1    | 1    | 1    | 0.333267 | 0        | 0      | 0        | 0.333267 |
 | 26 | 0.71 | 0.25 | 0.88 | 0.67 | 0        | 0.333267 | 0      | 0        | 0.333267 |
 | 27 | 0.8  | 0.06 | 1    | 0.67 | 0        | 0.333267 | 0      | 0        | 0.333267 |
+
+Wyznaczony ranking odzwierciedla nasze wstępne założenia - aż 6 z 7 wariantów o najwyższej użyteczności globalnej to reprezentanci finansowania z klasy F2. Nie widać natomiast szczególnych trendów związanych z typem S1 opisanym w naszej strategii. Jednak ze względu na fakt, że przyjęliśmy klasę F2 za ważną dla obu grup decydentów, jesteśmy zadowoleni z tego wyniku. Co ciekawe na końcu rankingu znalazła się większość wariantów z klasy S3.
+
 
 Diagram Hasse'go: <br>
 ![](Hesse_full.png)
